@@ -1,7 +1,8 @@
-import fs from "fs/promises";
-import path from "path";
+import { kv } from "@vercel/kv";
 
-// Default buffer mapping (fallback when no saved mapping exists)
+const KV_KEY = "otzma:buffer-mapping";
+
+// Default buffer mapping (initial seed)
 const DEFAULT_MAPPING: Record<string, string> = {
   "ייעוץ ובדיקות": "1",
   "מוות מתאונה": "1",
@@ -48,26 +49,20 @@ const DEFAULT_MAPPING: Record<string, string> = {
   "ביטוח חיים משולב בחיסכון": "4",
 };
 
-const MAPPING_FILE = path.join(process.cwd(), "data", "buffer-mapping.json");
-
 export async function readMapping(): Promise<Record<string, string>> {
   try {
-    const content = await fs.readFile(MAPPING_FILE, "utf-8");
-    return JSON.parse(content);
+    const mapping = await kv.get<Record<string, string>>(KV_KEY);
+    if (mapping && Object.keys(mapping).length > 0) {
+      return mapping;
+    }
   } catch {
-    // File doesn't exist yet — return defaults
-    return { ...DEFAULT_MAPPING };
+    // KV not available (local dev without KV) — fall back to defaults
   }
+  return { ...DEFAULT_MAPPING };
 }
 
 export async function writeMapping(
   mapping: Record<string, string>
 ): Promise<void> {
-  const dir = path.dirname(MAPPING_FILE);
-  await fs.mkdir(dir, { recursive: true });
-  await fs.writeFile(MAPPING_FILE, JSON.stringify(mapping, null, 2), "utf-8");
-}
-
-export function getDefaultMapping(): Record<string, string> {
-  return { ...DEFAULT_MAPPING };
+  await kv.set(KV_KEY, mapping);
 }

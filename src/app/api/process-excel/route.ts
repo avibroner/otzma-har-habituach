@@ -7,6 +7,7 @@ import {
   fetchFieldOptions,
 } from "@/lib/fireberry";
 import { readMapping } from "@/lib/mapping-store";
+import { notifyUnmappedBranches } from "@/lib/notify";
 import type { ProgressUpdate } from "@/lib/types";
 
 function delay(ms: number) {
@@ -110,7 +111,21 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        // 5. Send webhook
+        // 5. Send email alert for unmapped branches
+        const unmappedBranches = [...new Set(
+          warnings
+            .filter((w) => w.includes("לא ממופה לחוצץ") || w.includes("לא נמצא בפיירברי"))
+            .map((w) => {
+              const match = w.match(/"([^"]+)"/);
+              return match ? match[1] : "";
+            })
+            .filter(Boolean)
+        )];
+        if (unmappedBranches.length > 0) {
+          notifyUnmappedBranches(unmappedBranches, idNumber);
+        }
+
+        // 6. Send webhook
         send({ step: "webhook", message: "שולח webhook..." });
         try {
           const webhookId =
@@ -120,7 +135,7 @@ export async function POST(request: NextRequest) {
           // webhook is optional
         }
 
-        // 6. Done
+        // 7. Done
         send({
           step: "done",
           message: JSON.stringify({
