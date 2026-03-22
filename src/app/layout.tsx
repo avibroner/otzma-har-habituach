@@ -22,7 +22,7 @@ export default function RootLayout({
     <html lang="he" dir="rtl" className={`${heebo.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col font-[family-name:var(--font-heebo)]">
         {children}
-        <FutureFlowBadge systemName="הר הביטוח — עוצמה" theme="dark" />
+        <FutureFlowBadge systemName="הר הביטוח — עוצמה" theme="light" />
       </body>
     </html>
   );
