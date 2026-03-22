@@ -145,6 +145,7 @@ export async function createInsuranceRecord(
     pcfsystemfield162: "", // הערות
     pcfsystemfield227: row.sector, // תחום ביטוח
     pcfsystemfield281: row.periodText, // תקופה טקסט
+    pcfsystemfield380: row.idNumber, // תעודת זהות
   };
 
   if (row.periodStart) {

@@ -135,6 +135,7 @@ export function parseExcel(buffer: ArrayBuffer, filename: string): ParsedExcel {
         policyNumber: colJ,
         planClassification: String(row[10] || "").trim(),
         sector: currentSector,
+        idNumber: colA || "",
       });
     }
   }

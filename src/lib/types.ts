@@ -11,6 +11,7 @@ export interface InsuranceRow {
   policyNumber: string;
   planClassification: string;
   sector: number;
+  idNumber: string;
 }
 
 export interface ParsedExcel {
