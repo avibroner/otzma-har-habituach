@@ -82,7 +82,7 @@ export default function AdminPage() {
   if (loading) {
     return (
       <main className="flex-1 flex items-center justify-center">
-        <p className="text-gray-500">טוען נתונים מפיירברי...</p>
+        <p className="text-white/50">טוען נתונים מפיירברי...</p>
       </main>
     );
   }
@@ -90,7 +90,7 @@ export default function AdminPage() {
   if (error) {
     return (
       <main className="flex-1 flex items-center justify-center">
-        <p className="text-red-600">{error}</p>
+        <p className="text-red-400">{error}</p>
       </main>
     );
   }
@@ -100,24 +100,24 @@ export default function AdminPage() {
       <div className="w-full max-w-3xl">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">
+            <h1 className="text-2xl font-bold text-white">
               הגדרות — מיפוי ענפים
             </h1>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-white/50 mt-1">
               {branches.length} ענפים משניים | {unmappedCount > 0 && (
-                <span className="text-orange-600 font-medium">
+                <span className="text-orange-400 font-medium">
                   {unmappedCount} ללא חוצץ
                 </span>
               )}
               {unmappedCount === 0 && (
-                <span className="text-green-600">הכל ממופה</span>
+                <span className="text-green-400">הכל ממופה</span>
               )}
             </p>
           </div>
           <div className="flex gap-3">
             <a
               href="/"
-              className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+              className="px-4 py-2 text-sm text-white/60 border border-white/20 rounded-lg hover:bg-white/10"
             >
               חזרה
             </a>
@@ -126,8 +126,8 @@ export default function AdminPage() {
               disabled={!hasChanges || saving}
               className={`px-6 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer ${
                 hasChanges
-                  ? "bg-blue-500 text-white hover:bg-blue-600"
-                  : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                  ? "bg-[#d8b368] text-[#1a1f2e] hover:bg-[#c8a358]"
+                  : "bg-white/10 text-white/30 cursor-not-allowed"
               }`}
             >
               {saving ? "שומר..." : "שמור"}
@@ -135,17 +135,17 @@ export default function AdminPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-lg">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="text-right px-4 py-3 font-medium text-gray-600">
+              <tr className="bg-gray-100 border-b border-gray-200">
+                <th className="text-right px-4 py-3 font-semibold text-gray-700">
                   ענף משני
                 </th>
-                <th className="text-right px-4 py-3 font-medium text-gray-600">
+                <th className="text-right px-4 py-3 font-semibold text-gray-700">
                   מזהה
                 </th>
-                <th className="text-right px-4 py-3 font-medium text-gray-600">
+                <th className="text-right px-4 py-3 font-semibold text-gray-700">
                   חוצץ
                 </th>
               </tr>
@@ -155,11 +155,11 @@ export default function AdminPage() {
                 <tr
                   key={branch.value}
                   className={`border-b border-gray-100 ${
-                    !mapping[branch.name] ? "bg-orange-50" : ""
+                    !mapping[branch.name] ? "bg-orange-50" : "bg-white"
                   }`}
                 >
-                  <td className="px-4 py-2.5 text-gray-800">{branch.name}</td>
-                  <td className="px-4 py-2.5 text-gray-400 text-xs font-mono">
+                  <td className="px-4 py-2.5 text-gray-900 font-medium">{branch.name}</td>
+                  <td className="px-4 py-2.5 text-gray-500 text-xs font-mono">
                     {branch.value}
                   </td>
                   <td className="px-4 py-2.5">
@@ -168,10 +168,10 @@ export default function AdminPage() {
                       onChange={(e) =>
                         handleBufferChange(branch.name, e.target.value)
                       }
-                      className={`w-full px-2 py-1.5 rounded border text-sm ${
+                      className={`w-full px-2 py-1.5 rounded border text-sm text-gray-900 ${
                         mapping[branch.name]
                           ? "border-gray-300 bg-white"
-                          : "border-orange-300 bg-orange-50"
+                          : "border-orange-400 bg-orange-50"
                       }`}
                     >
                       <option value="">— בחר חוצץ —</option>
