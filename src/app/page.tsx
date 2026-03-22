@@ -1,65 +1,96 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useCallback } from "react";
+import UploadZone from "@/components/upload-zone";
+import ProgressDisplay from "@/components/progress-display";
+import type { ProgressUpdate } from "@/lib/types";
+
+type AppState = "idle" | "processing" | "done" | "error";
 
 export default function Home() {
+  const [state, setState] = useState<AppState>("idle");
+  const [updates, setUpdates] = useState<ProgressUpdate[]>([]);
+
+  const handleFileSelected = useCallback(async (file: File) => {
+    setState("processing");
+    setUpdates([]);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await fetch("/api/process-excel", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.body) {
+        setUpdates([{ step: "error", message: "אין תגובה מהשרת" }]);
+        setState("error");
+        return;
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (line.trim()) {
+            try {
+              const update: ProgressUpdate = JSON.parse(line);
+              setUpdates((prev) => [...prev, update]);
+
+              if (update.step === "done") setState("done");
+              if (update.step === "error") setState("error");
+            } catch {
+              // skip malformed lines
+            }
+          }
+        }
+      }
+    } catch (err) {
+      setUpdates((prev) => [
+        ...prev,
+        {
+          step: "error" as const,
+          message: err instanceof Error ? err.message : "שגיאה בחיבור לשרת",
+        },
+      ]);
+      setState("error");
+    }
+  }, []);
+
+  const handleReset = useCallback(() => {
+    setState("idle");
+    setUpdates([]);
+  }, []);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <main className="flex-1 flex flex-col items-center justify-center px-4 py-12">
+      <div className="w-full max-w-lg">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-800">הר הביטוח</h1>
+          <p className="mt-2 text-gray-500">
+            טעינת נתוני הר הביטוח לפיירברי
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+
+        {state === "idle" && (
+          <UploadZone onFileSelected={handleFileSelected} />
+        )}
+
+        {state !== "idle" && (
+          <ProgressDisplay updates={updates} onReset={handleReset} />
+        )}
+      </div>
+    </main>
   );
 }
