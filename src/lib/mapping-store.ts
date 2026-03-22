@@ -1,4 +1,4 @@
-import { kv } from "@vercel/kv";
+import { createClient } from "redis";
 
 const KV_KEY = "otzma:buffer-mapping";
 
@@ -49,14 +49,28 @@ const DEFAULT_MAPPING: Record<string, string> = {
   "ביטוח חיים משולב בחיסכון": "4",
 };
 
+async function getRedisClient() {
+  const url = process.env.REDIS_URL;
+  if (!url) return null;
+
+  const client = createClient({ url });
+  await client.connect();
+  return client;
+}
+
 export async function readMapping(): Promise<Record<string, string>> {
   try {
-    const mapping = await kv.get<Record<string, string>>(KV_KEY);
-    if (mapping && Object.keys(mapping).length > 0) {
-      return mapping;
+    const client = await getRedisClient();
+    if (!client) return { ...DEFAULT_MAPPING };
+
+    const data = await client.get(KV_KEY);
+    await client.disconnect();
+
+    if (data) {
+      return JSON.parse(data);
     }
   } catch {
-    // KV not available (local dev without KV) — fall back to defaults
+    // Redis not available — fall back to defaults
   }
   return { ...DEFAULT_MAPPING };
 }
@@ -64,5 +78,9 @@ export async function readMapping(): Promise<Record<string, string>> {
 export async function writeMapping(
   mapping: Record<string, string>
 ): Promise<void> {
-  await kv.set(KV_KEY, mapping);
+  const client = await getRedisClient();
+  if (!client) throw new Error("Redis not configured");
+
+  await client.set(KV_KEY, JSON.stringify(mapping));
+  await client.disconnect();
 }
