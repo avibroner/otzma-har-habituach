@@ -7,7 +7,7 @@ import {
   fetchFieldOptions,
 } from "@/lib/fireberry";
 import { readMapping } from "@/lib/mapping-store";
-import { notifyUnmappedBranches } from "@/lib/notify";
+import { notifyUnmappedBranches, buildUnmappedRecord } from "@/lib/notify";
 import type { ProgressUpdate } from "@/lib/types";
 
 function delay(ms: number) {
@@ -85,6 +85,7 @@ export async function POST(request: NextRequest) {
         // 4. Create new records
         const errors: string[] = [];
         const warnings: string[] = [];
+        const unmappedRecords: ReturnType<typeof buildUnmappedRecord>[] = [];
         let createdCount = 0;
 
         for (let i = 0; i < rows.length; i++) {
@@ -100,6 +101,7 @@ export async function POST(request: NextRequest) {
             createdCount++;
             if (result.warning) {
               warnings.push(`שורה ${i + 1}: ${result.warning}`);
+              unmappedRecords.push(buildUnmappedRecord(rows[i], i + 1));
             }
           } catch (err) {
             const msg = `שגיאה בשורה ${i + 1} (פוליסה ${rows[i].policyNumber}): ${err instanceof Error ? err.message : "unknown"}`;
@@ -112,18 +114,9 @@ export async function POST(request: NextRequest) {
         }
 
         // 5. Send email alert for unmapped branches
-        const unmappedBranches = [...new Set(
-          warnings
-            .filter((w) => w.includes("לא ממופה לחוצץ") || w.includes("לא נמצא בפיירברי"))
-            .map((w) => {
-              const match = w.match(/"([^"]+)"/);
-              return match ? match[1] : "";
-            })
-            .filter(Boolean)
-        )];
-        if (unmappedBranches.length > 0) {
+        if (unmappedRecords.length > 0) {
           notifyUnmappedBranches(
-            unmappedBranches,
+            unmappedRecords,
             idNumber,
             person.personType,
             rows.length,
