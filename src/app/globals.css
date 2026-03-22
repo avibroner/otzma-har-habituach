@@ -1,17 +1,20 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8fafc;
-  --foreground: #1e293b;
+  --background: #1a1f2e;
+  --foreground: #f1f5f9;
+  --gold: #d8b368;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-gold: var(--gold);
   --font-sans: var(--font-heebo);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
+  min-height: 100vh;
 }

@@ -25,7 +25,6 @@ export default function ProgressDisplay({ updates, onReset }: ProgressDisplayPro
   const isError = lastUpdate.step === "error";
   const currentStep = lastUpdate.step;
 
-  // Parse result from done message
   let result: ProcessResult | null = null;
   if (isDone) {
     try {
@@ -35,7 +34,6 @@ export default function ProgressDisplay({ updates, onReset }: ProgressDisplayPro
     }
   }
 
-  // Calculate progress
   const currentStepIndex = STEP_ORDER.indexOf(currentStep);
   const creatingUpdate = updates.findLast((u) => u.step === "creating" && u.total);
   const subProgress =
@@ -50,14 +48,13 @@ export default function ProgressDisplay({ updates, onReset }: ProgressDisplayPro
 
   return (
     <div className="space-y-4">
-      {/* Progress card */}
-      <div className="rounded-2xl bg-white border border-gray-200 p-6 shadow-sm overflow-hidden">
+      <div className="rounded-2xl bg-white/10 backdrop-blur-xl border border-white/15 p-6 shadow-lg overflow-hidden">
         {/* Progress bar */}
         {!isDone && !isError && (
           <div className="mb-6">
-            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-2 bg-white/10 rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-l from-blue-500 to-blue-400 rounded-full transition-all duration-500 ease-out"
+                className="h-full bg-gradient-to-l from-[#d8b368] to-[#e8c878] rounded-full transition-all duration-500 ease-out"
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
@@ -66,15 +63,15 @@ export default function ProgressDisplay({ updates, onReset }: ProgressDisplayPro
 
         {/* Success header */}
         {isDone && result && (
-          <div className="flex items-center gap-3 mb-5 pb-4 border-b border-green-100">
-            <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center shrink-0">
-              <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <div className="flex items-center gap-3 mb-5 pb-4 border-b border-white/10">
+            <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center shrink-0">
+              <svg className="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
               </svg>
             </div>
             <div className="min-w-0">
-              <p className="text-base font-bold text-green-700">הטעינה הושלמה בהצלחה</p>
-              <p className="text-sm text-green-600 truncate">
+              <p className="text-base font-bold text-white">הטעינה הושלמה בהצלחה</p>
+              <p className="text-sm text-white/60 truncate">
                 {result.createdCount} רשומות נוצרו עבור ת.ז. {result.idNumber}
               </p>
             </div>
@@ -83,15 +80,15 @@ export default function ProgressDisplay({ updates, onReset }: ProgressDisplayPro
 
         {/* Error header */}
         {isError && (
-          <div className="flex items-center gap-3 mb-5 pb-4 border-b border-red-100">
-            <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
-              <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <div className="flex items-center gap-3 mb-5 pb-4 border-b border-white/10">
+            <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
+              <svg className="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </div>
             <div className="min-w-0">
-              <p className="text-base font-bold text-red-700">שגיאה</p>
-              <p className="text-sm text-red-600 break-words">{lastUpdate.message}</p>
+              <p className="text-base font-bold text-white">שגיאה</p>
+              <p className="text-sm text-red-300 break-words">{lastUpdate.message}</p>
             </div>
           </div>
         )}
@@ -117,22 +114,22 @@ export default function ProgressDisplay({ updates, onReset }: ProgressDisplayPro
                       </svg>
                     </div>
                   ) : isActive ? (
-                    <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                    <div className="w-5 h-5 border-2 border-[#d8b368] border-t-transparent rounded-full animate-spin" />
                   ) : isPending ? (
-                    <div className="w-5 h-5 rounded-full border-2 border-gray-200" />
+                    <div className="w-5 h-5 rounded-full border-2 border-white/20" />
                   ) : null}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-baseline gap-2">
                     <span
                       className={`text-sm font-medium ${
-                        isActive ? "text-blue-600" : isCompleted ? "text-gray-700" : "text-gray-400"
+                        isActive ? "text-[#d8b368]" : isCompleted ? "text-white" : "text-white/30"
                       }`}
                     >
                       {STEP_LABELS[step]}
                     </span>
                     {lastStepUpdate && (
-                      <span className="text-xs text-gray-400 truncate">
+                      <span className="text-xs text-white/40 truncate">
                         {lastStepUpdate.message}
                       </span>
                     )}
@@ -145,18 +142,18 @@ export default function ProgressDisplay({ updates, onReset }: ProgressDisplayPro
 
         {/* Result details */}
         {result && (
-          <div className="mt-5 pt-4 border-t border-gray-100">
+          <div className="mt-5 pt-4 border-t border-white/10">
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-gray-50 rounded-lg p-3 text-center">
-                <p className="text-2xl font-bold text-gray-800">{result.createdCount}</p>
-                <p className="text-xs text-gray-500 mt-0.5">רשומות נוצרו</p>
+              <div className="bg-white/10 rounded-lg p-3 text-center">
+                <p className="text-2xl font-bold text-white">{result.createdCount}</p>
+                <p className="text-xs text-white/50 mt-0.5">רשומות נוצרו</p>
               </div>
-              <div className="bg-gray-50 rounded-lg p-3 text-center">
-                <p className="text-2xl font-bold text-gray-800">{result.totalRows}</p>
-                <p className="text-xs text-gray-500 mt-0.5">שורות בקובץ</p>
+              <div className="bg-white/10 rounded-lg p-3 text-center">
+                <p className="text-2xl font-bold text-white">{result.totalRows}</p>
+                <p className="text-xs text-white/50 mt-0.5">שורות בקובץ</p>
               </div>
             </div>
-            <div className="mt-3 flex items-center justify-between text-xs text-gray-500 px-1">
+            <div className="mt-3 flex items-center justify-between text-xs text-white/40 px-1">
               <span>ת.ז. {result.idNumber}</span>
               <span>{result.personType === "insured" ? "מבוטח" : "ליד"}</span>
             </div>
@@ -165,13 +162,13 @@ export default function ProgressDisplay({ updates, onReset }: ProgressDisplayPro
 
         {/* Warnings */}
         {result?.warnings && result.warnings.length > 0 && (
-          <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-xl">
-            <p className="text-amber-700 text-xs font-semibold mb-1.5">
+          <div className="mt-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+            <p className="text-amber-300 text-xs font-semibold mb-1.5">
               ענפים לא ממופים ({result.warnings.length})
             </p>
             <div className="space-y-0.5">
               {result.warnings.map((w, i) => (
-                <p key={i} className="text-amber-600 text-xs break-words">{w}</p>
+                <p key={i} className="text-amber-200/70 text-xs break-words">{w}</p>
               ))}
             </div>
           </div>
@@ -179,13 +176,13 @@ export default function ProgressDisplay({ updates, onReset }: ProgressDisplayPro
 
         {/* Errors */}
         {result?.errors && result.errors.length > 0 && (
-          <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-xl">
-            <p className="text-red-700 text-xs font-semibold mb-1.5">
+          <div className="mt-3 p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
+            <p className="text-red-300 text-xs font-semibold mb-1.5">
               שגיאות ({result.errors.length})
             </p>
             <div className="space-y-0.5">
               {result.errors.map((err, i) => (
-                <p key={i} className="text-red-600 text-xs break-words">{err}</p>
+                <p key={i} className="text-red-200/70 text-xs break-words">{err}</p>
               ))}
             </div>
           </div>
@@ -196,7 +193,7 @@ export default function ProgressDisplay({ updates, onReset }: ProgressDisplayPro
       {(isDone || isError) && (
         <button
           onClick={onReset}
-          className="w-full py-3.5 bg-gradient-to-l from-blue-600 to-blue-500 text-white rounded-xl font-medium hover:from-blue-700 hover:to-blue-600 transition-all shadow-sm cursor-pointer"
+          className="w-full py-3.5 bg-gradient-to-l from-[#d8b368] to-[#e8c878] text-[#1a1f2e] rounded-xl font-bold hover:from-[#c8a358] hover:to-[#d8b868] transition-all shadow-lg cursor-pointer"
         >
           העלה קובץ נוסף
         </button>

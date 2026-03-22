@@ -75,46 +75,61 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="flex-1 flex flex-col items-center justify-center px-4 py-10">
-      <div className="w-full max-w-md">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-5">
-            <Image
-              src="https://www.otzma-ins.co.il/wp-content/uploads/2025/12/cropped-logo.png"
-              alt="עוצמה ביטוח"
-              width={180}
-              height={44}
-              priority
-              className="h-11 w-auto"
-            />
-          </div>
-          <h1 className="text-2xl font-bold text-gray-800">הר הביטוח</h1>
-          <p className="mt-1.5 text-sm text-gray-400">
-            טעינת נתוני הר הביטוח לפיירברי
-          </p>
-        </div>
-
-        {/* Content */}
-        {state === "idle" && (
-          <UploadZone onFileSelected={handleFileSelected} />
-        )}
-
-        {state !== "idle" && (
-          <ProgressDisplay updates={updates} onReset={handleReset} />
-        )}
-
-        {/* Footer */}
-        <div className="mt-8 flex items-center justify-between text-xs text-gray-300 px-1">
-          <a
-            href="/admin"
-            className="hover:text-gray-500 transition-colors"
-          >
-            הגדרות
-          </a>
-          <span>עוצמה סוכנות לביטוח</span>
-        </div>
+    <>
+      {/* Background */}
+      <div className="fixed inset-0 -z-10">
+        <Image
+          src="/bg.png"
+          alt=""
+          fill
+          className="object-cover"
+          priority
+          quality={90}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#1a1f2e]/85 via-[#1a1f2e]/80 to-[#1a1f2e]/90" />
       </div>
-    </main>
+
+      <main className="flex-1 flex flex-col items-center justify-center px-4 py-10">
+        <div className="w-full max-w-md">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="flex justify-center mb-5">
+              <Image
+                src="https://www.otzma-ins.co.il/wp-content/uploads/2025/12/cropped-logo.png"
+                alt="עוצמה ביטוח"
+                width={200}
+                height={49}
+                priority
+                className="h-12 w-auto drop-shadow-lg"
+              />
+            </div>
+            <h1 className="text-2xl font-bold text-white">הר הביטוח</h1>
+            <p className="mt-1.5 text-sm text-white/50">
+              טעינת נתוני הר הביטוח לפיירברי
+            </p>
+          </div>
+
+          {/* Content */}
+          {state === "idle" && (
+            <UploadZone onFileSelected={handleFileSelected} />
+          )}
+
+          {state !== "idle" && (
+            <ProgressDisplay updates={updates} onReset={handleReset} />
+          )}
+
+          {/* Footer */}
+          <div className="mt-8 flex items-center justify-between text-xs text-white/25 px-1">
+            <a
+              href="/admin"
+              className="hover:text-white/50 transition-colors"
+            >
+              הגדרות
+            </a>
+            <span>עוצמה סוכנות לביטוח</span>
+          </div>
+        </div>
+      </main>
+    </>
   );
 }
