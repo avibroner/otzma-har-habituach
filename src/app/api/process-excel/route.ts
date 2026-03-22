@@ -2,8 +2,9 @@ import { NextRequest } from "next/server";
 import { parseExcel } from "@/lib/excel-parser";
 import {
   searchPerson,
+  deleteInsuranceMountain,
   createInsuranceRecord,
-  sendWebhook,
+  updatePremiumSummary,
   fetchFieldOptions,
 } from "@/lib/fireberry";
 import { readMapping } from "@/lib/mapping-store";
@@ -82,7 +83,14 @@ export async function POST(request: NextRequest) {
           message: `נטענו ${branchCount} ענפים משניים`,
         });
 
-        // 4. Create new records
+        // 4. Delete existing insurance mountain records
+        send({ step: "creating", message: "מוחק רשומות הר ביטוח קיימות..." });
+        const deletedCount = await deleteInsuranceMountain(person);
+        if (deletedCount > 0) {
+          send({ step: "creating", message: `נמחקו ${deletedCount} רשומות קיימות` });
+        }
+
+        // 5. Create new records
         const errors: string[] = [];
         const warnings: string[] = [];
         const unmappedRecords: ReturnType<typeof buildUnmappedRecord>[] = [];
@@ -124,14 +132,12 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        // 6. Send webhook
-        send({ step: "webhook", message: "שולח webhook..." });
+        // 6. Update premium summary on insured/lead
+        send({ step: "webhook", message: "מעדכן סיכומי פרמיות..." });
         try {
-          const webhookId =
-            person.personType === "insured" ? person.insuredId : person.leadId;
-          await sendWebhook(person.personType, webhookId);
-        } catch {
-          // webhook is optional
+          await updatePremiumSummary(person);
+        } catch (err) {
+          errors.push(`שגיאה בעדכון סיכומי פרמיות: ${err instanceof Error ? err.message : "unknown"}`);
         }
 
         // 7. Done

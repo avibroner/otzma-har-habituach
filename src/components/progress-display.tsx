@@ -12,7 +12,7 @@ const STEP_LABELS: Record<string, string> = {
   searching: "חיפוש בפיירברי",
   loading_options: "טעינת ערכי שדות",
   creating: "יצירת רשומות",
-  webhook: "סיום",
+  webhook: "עדכון סיכומי פרמיות",
 };
 
 const STEP_ORDER = ["parsing", "searching", "loading_options", "creating", "webhook"];

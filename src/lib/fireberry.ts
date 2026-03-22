@@ -1,5 +1,4 @@
 import type { InsuranceRow, PersonIds, FieldOptions } from "./types";
-import { readMapping } from "./mapping-store";
 
 const API_BASE = "https://api.fireberry.com";
 const API_BASE_OLD = "https://api.powerlink.co.il/api";
@@ -111,6 +110,24 @@ export async function searchPerson(idNumber: string): Promise<PersonIds | null> 
   return null;
 }
 
+export async function deleteInsuranceMountain(person: PersonIds): Promise<number> {
+  let queryStr: string;
+  if (person.personType === "insured") {
+    queryStr = `(pcfsystemfield139 = ${person.insuredId})`;
+  } else {
+    queryStr = `(pcfsystemfield223 = ${person.leadId})`;
+  }
+
+  const records = await query("1005", queryStr);
+  const ids: string[] = records.map((r: Record<string, string>) => r.customobject1005id);
+
+  for (const id of ids) {
+    await apiRequest(`/record/1005/${id}`, { method: "DELETE" });
+  }
+
+  return ids.length;
+}
+
 export async function createInsuranceRecord(
   row: InsuranceRow,
   person: PersonIds,
@@ -168,16 +185,67 @@ export async function createInsuranceRecord(
   return { warning };
 }
 
-export async function sendWebhook(
-  personType: "insured" | "lead",
-  personId: string
-): Promise<void> {
-  const webhookUrl = process.env.MAKE_WEBHOOK_URL;
-  if (!webhookUrl) return;
+// Aggregate premiums from insurance mountain and update insured/lead record
+export async function updatePremiumSummary(person: PersonIds): Promise<void> {
+  // Query all insurance mountain records for this person
+  let queryStr: string;
+  if (person.personType === "insured") {
+    queryStr = `(pcfsystemfield139 = ${person.insuredId})`;
+  } else {
+    queryStr = `(pcfsystemfield223 = ${person.leadId})`;
+  }
 
-  const tape = personType === "insured" ? "Insured" : "lead";
-  const url = `${webhookUrl}?tape=${tape}&id=${personId}`;
+  const records = await query("1005", queryStr);
+  if (records.length === 0) return;
 
-  await fetch(url, { method: "POST" });
+  // Sum premiums grouped by חוצץ-סיווג תוכנית
+  const sums: Record<string, number> = {};
+  for (const rec of records) {
+    const bufferName = rec.pcfsystemfield229name || "";
+    const classification = rec.pcfsystemfield158 || "";
+    const premium = parseFloat(rec.pcfsystemfield156) || 0;
+    const key = `${bufferName}-${classification}`;
+    sums[key] = (sums[key] || 0) + premium;
+  }
+
+  const get = (key: string) => sums[key] || 0;
+
+  // Build update payload based on person type
+  let objecttype: string;
+  let objectid: string;
+  let fields: Record<string, number>;
+
+  if (person.personType === "insured") {
+    objecttype = "2";
+    objectid = person.insuredId;
+    fields = {
+      pcfsystemfield237: get("חיים בריאות-אישי"),
+      pcfsystemfield239: get("אלמנטרי-אישי"),
+      pcfsystemfield241: get("תאונות וסיעוד-אישי"),
+      pcfsystemfield243: get("א.כ.ע-אישי"),
+      pcfsystemfield259: get("חיים בריאות-קבוצתי") + get("חיים בריאות-קבוצתי קופת חולים"),
+      pcfsystemfield255: get("אלמנטרי-קבוצתי") + get("אלמנטרי-קבוצתי קופת חולים"),
+      pcfsystemfield257: get("תאונות וסיעוד-קבוצתי") + get("תאונות וסיעוד-קבוצתי קופת חולים"),
+      pcfsystemfield253: get("א.כ.ע-קבוצתי") + get("א.כ.ע-קבוצתי קופת חולים"),
+    };
+  } else {
+    objecttype = "1003";
+    objectid = person.leadId;
+    fields = {
+      pcfsystemfield230: get("חיים בריאות-אישי"),
+      pcfsystemfield231: get("אלמנטרי-אישי"),
+      pcfsystemfield233: get("תאונות וסיעוד-אישי"),
+      pcfsystemfield235: get("א.כ.ע-אישי"),
+      pcfsystemfield251: get("חיים בריאות-קבוצתי") + get("חיים בריאות-קבוצתי קופת חולים"),
+      pcfsystemfield247: get("אלמנטרי-קבוצתי") + get("אלמנטרי-קבוצתי קופת חולים"),
+      pcfsystemfield249: get("תאונות וסיעוד-קבוצתי") + get("תאונות וסיעוד-קבוצתי קופת חולים"),
+      pcfsystemfield245: get("א.כ.ע-קבוצתי") + get("א.כ.ע-קבוצתי קופת חולים"),
+    };
+  }
+
+  await apiRequest(`/record/${objecttype}/${objectid}`, {
+    method: "PUT",
+    body: JSON.stringify(fields),
+  });
 }
 
