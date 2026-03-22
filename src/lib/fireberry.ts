@@ -36,8 +36,19 @@ async function query(objecttype: string, queryStr: string, pageSize = 500) {
 }
 
 export async function searchPerson(idNumber: string): Promise<PersonIds | null> {
+  // Try with and without leading zeros
+  const idVariants = [idNumber];
+  const stripped = idNumber.replace(/^0+/, "");
+  if (stripped !== idNumber) idVariants.push(stripped);
+  const padded = idNumber.padStart(9, "0");
+  if (padded !== idNumber) idVariants.push(padded);
+
   // Search as insured (contacts - objecttype 2)
-  const insuredResults = await query("2", `(pcfsystemfield127 = ${idNumber})`);
+  let insuredResults: Record<string, string>[] = [];
+  for (const id of idVariants) {
+    insuredResults = await query("2", `(pcfsystemfield127 = ${id})`);
+    if (insuredResults.length > 0) break;
+  }
 
   if (insuredResults.length > 0) {
     return {
@@ -49,7 +60,11 @@ export async function searchPerson(idNumber: string): Promise<PersonIds | null> 
   }
 
   // Search as lead (objecttype 1003)
-  const leadResults = await query("1003", `(pcfsystemfield101 = ${idNumber})`);
+  let leadResults: Record<string, string>[] = [];
+  for (const id of idVariants) {
+    leadResults = await query("1003", `(pcfsystemfield101 = ${id})`);
+    if (leadResults.length > 0) break;
+  }
 
   if (leadResults.length > 0) {
     return {

@@ -35,18 +35,11 @@ export async function POST(request: NextRequest) {
         const buffer = await file.arrayBuffer();
         const { idNumber, rows } = parseExcel(buffer, file.name);
 
-        if (rows.length === 0) {
-          send({
-            step: "error",
-            message: `ת.ז. ${idNumber} — לא נמצאו שורות ביטוח בקובץ`,
-          });
-          controller.close();
-          return;
-        }
-
         send({
           step: "parsing",
-          message: `נמצאו ${rows.length} שורות ביטוח, ת.ז. ${idNumber}`,
+          message: rows.length > 0
+            ? `נמצאו ${rows.length} שורות ביטוח, ת.ז. ${idNumber}`
+            : `ת.ז. ${idNumber} — אין שורות ביטוח בקובץ, מוחק רשומות ישנות בלבד`,
         });
 
         // 2. Search person in Fireberry

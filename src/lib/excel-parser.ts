@@ -52,22 +52,51 @@ function parsePeriod(periodText: string): { start: string | null; end: string | 
   }
 }
 
+// Fix sheets where the declared dimension is smaller than the actual data.
+// הר הביטוח files declare dimension="A2:K5" but have data rows beyond that.
+function fixSheetRange(sheet: XLSX.WorkSheet): void {
+  let maxRow = 0;
+  let maxCol = 0;
+  for (const key of Object.keys(sheet)) {
+    if (key.startsWith("!")) continue;
+    const cell = XLSX.utils.decode_cell(key);
+    if (cell.r > maxRow) maxRow = cell.r;
+    if (cell.c > maxCol) maxCol = cell.c;
+  }
+  sheet["!ref"] = XLSX.utils.encode_range(
+    { r: 0, c: 0 },
+    { r: maxRow, c: maxCol }
+  );
+}
+
 export function parseExcel(buffer: ArrayBuffer, filename: string): ParsedExcel {
   const workbook = XLSX.read(buffer, { type: "array" });
   const sheetName = workbook.SheetNames[0];
   const sheet = workbook.Sheets[sheetName];
+
+  // Fix wrong dimension declaration in הר הביטוח files
+  fixSheetRange(sheet);
+
   const data: (string | number)[][] = XLSX.utils.sheet_to_json(sheet, {
     header: 1,
     defval: "",
   });
 
-  // Extract ID from column A of first data row, or from filename
   let idNumber: string | null = null;
   let currentSector = 1;
   const rows: InsuranceRow[] = [];
 
-  // Data starts from row 3 (index 3)
-  for (let i = 3; i < data.length; i++) {
+  // Find header row dynamically (row containing "תעודת זהות")
+  let dataStartIndex = 4; // default
+  for (let i = 0; i < Math.min(data.length, 10); i++) {
+    const firstCell = String(data[i]?.[0] || "").trim();
+    if (firstCell === "תעודת זהות") {
+      dataStartIndex = i + 1;
+      break;
+    }
+  }
+
+  for (let i = dataStartIndex; i < data.length; i++) {
     const row = data[i];
     if (!row || row.length === 0) continue;
 
@@ -75,8 +104,13 @@ export function parseExcel(buffer: ArrayBuffer, filename: string): ParsedExcel {
     const colB = String(row[1] || "").trim(); // ענף ראשי
     const colJ = String(row[9] || "").trim(); // מספר פוליסה
 
-    // Sector header row: col A empty, col B has "תחום -", col J empty
-    if (!colA && colB.startsWith("תחום -") && !colJ) {
+    // Extract ID from any row that has column A with digits
+    if (!idNumber && colA && /^\d+$/.test(colA)) {
+      idNumber = colA;
+    }
+
+    // Sector header row: col B has "תחום -", col J empty
+    if (colB.startsWith("תחום -") && !colJ) {
       const sectorValue = SECTOR_MAP[colB];
       if (sectorValue) {
         currentSector = sectorValue;
@@ -86,11 +120,6 @@ export function parseExcel(buffer: ArrayBuffer, filename: string): ParsedExcel {
 
     // Insurance data row: col J (policy number) not empty
     if (colJ) {
-      // Extract ID from first data row
-      if (!idNumber && colA) {
-        idNumber = colA;
-      }
-
       const periodText = String(row[5] || "");
       const { start, end } = parsePeriod(periodText);
 
@@ -111,13 +140,8 @@ export function parseExcel(buffer: ArrayBuffer, filename: string): ParsedExcel {
     }
   }
 
-  // Fallback: extract ID from filename
   if (!idNumber) {
-    idNumber = extractIdFromFilename(filename) || "";
-  }
-
-  if (!idNumber) {
-    throw new Error("לא נמצאה תעודת זהות בקובץ");
+    throw new Error("לא נמצאה תעודת זהות בקובץ. וודא שעמודה A מכילה מספר ת.ז.");
   }
 
   return { idNumber, rows };
