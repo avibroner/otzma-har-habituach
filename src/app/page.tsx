@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import Image from "next/image";
 import UploadZone from "@/components/upload-zone";
 import ProgressDisplay from "@/components/progress-display";
 import type { ProgressUpdate } from "@/lib/types";
@@ -74,15 +75,27 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="flex-1 flex flex-col items-center justify-center px-4 py-12">
-      <div className="w-full max-w-lg">
+    <main className="flex-1 flex flex-col items-center justify-center px-4 py-10">
+      <div className="w-full max-w-md">
+        {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">הר הביטוח</h1>
-          <p className="mt-2 text-gray-500">
+          <div className="flex justify-center mb-5">
+            <Image
+              src="https://www.otzma-ins.co.il/wp-content/uploads/2025/12/cropped-logo.png"
+              alt="עוצמה ביטוח"
+              width={180}
+              height={44}
+              priority
+              className="h-11 w-auto"
+            />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-800">הר הביטוח</h1>
+          <p className="mt-1.5 text-sm text-gray-400">
             טעינת נתוני הר הביטוח לפיירברי
           </p>
         </div>
 
+        {/* Content */}
         {state === "idle" && (
           <UploadZone onFileSelected={handleFileSelected} />
         )}
@@ -91,13 +104,15 @@ export default function Home() {
           <ProgressDisplay updates={updates} onReset={handleReset} />
         )}
 
-        <div className="mt-8 text-center">
+        {/* Footer */}
+        <div className="mt-8 flex items-center justify-between text-xs text-gray-300 px-1">
           <a
             href="/admin"
-            className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+            className="hover:text-gray-500 transition-colors"
           >
-            הגדרות מיפוי ענפים
+            הגדרות
           </a>
+          <span>עוצמה סוכנות לביטוח</span>
         </div>
       </div>
     </main>
