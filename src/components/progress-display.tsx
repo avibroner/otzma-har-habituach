@@ -10,14 +10,13 @@ interface ProgressDisplayProps {
 const STEP_LABELS: Record<string, string> = {
   parsing: "פרסור קובץ",
   searching: "חיפוש בפיירברי",
-  deleting: "מחיקת רשומות ישנות",
-  creating: "יצירת רשומות חדשות",
-  webhook: "שליחת webhook",
+  creating: "יצירת רשומות",
+  webhook: "סיום",
   done: "הושלם",
   error: "שגיאה",
 };
 
-const STEP_ORDER = ["parsing", "searching", "deleting", "creating", "webhook", "done"];
+const STEP_ORDER = ["parsing", "searching", "creating", "webhook", "done"];
 
 export default function ProgressDisplay({ updates, onReset }: ProgressDisplayProps) {
   if (updates.length === 0) return null;
@@ -129,16 +128,28 @@ export default function ProgressDisplay({ updates, onReset }: ProgressDisplayPro
             <div>
               סוג: {result.personType === "insured" ? "מבוטח" : "ליד"}
             </div>
-            <div>נמחקו: {result.deletedCount} רשומות</div>
             <div>נוצרו: {result.createdCount} רשומות</div>
+            <div>מתוך: {result.totalRows} שורות</div>
           </div>
-          {result.errors.length > 0 && (
-            <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <p className="text-yellow-700 text-xs font-medium mb-1">
+          {result.warnings?.length > 0 && (
+            <div className="mt-3 p-2 bg-orange-50 border border-orange-200 rounded-lg">
+              <p className="text-orange-700 text-xs font-medium mb-1">
+                ענפים לא ממופים ({result.warnings.length}):
+              </p>
+              {result.warnings.map((w, i) => (
+                <p key={i} className="text-orange-600 text-xs">
+                  {w}
+                </p>
+              ))}
+            </div>
+          )}
+          {result.errors?.length > 0 && (
+            <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-700 text-xs font-medium mb-1">
                 שגיאות ({result.errors.length}):
               </p>
               {result.errors.map((err, i) => (
-                <p key={i} className="text-yellow-600 text-xs">
+                <p key={i} className="text-red-600 text-xs">
                   {err}
                 </p>
               ))}

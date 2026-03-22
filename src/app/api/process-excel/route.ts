@@ -2,7 +2,6 @@ import { NextRequest } from "next/server";
 import { parseExcel } from "@/lib/excel-parser";
 import {
   searchPerson,
-  deleteInsuranceMountain,
   createInsuranceRecord,
   sendWebhook,
 } from "@/lib/fireberry";
@@ -35,11 +34,18 @@ export async function POST(request: NextRequest) {
         const buffer = await file.arrayBuffer();
         const { idNumber, rows } = parseExcel(buffer, file.name);
 
+        if (rows.length === 0) {
+          send({
+            step: "error",
+            message: `ת.ז. ${idNumber} — אין שורות ביטוח בקובץ`,
+          });
+          controller.close();
+          return;
+        }
+
         send({
           step: "parsing",
-          message: rows.length > 0
-            ? `נמצאו ${rows.length} שורות ביטוח, ת.ז. ${idNumber}`
-            : `ת.ז. ${idNumber} — אין שורות ביטוח בקובץ, מוחק רשומות ישנות בלבד`,
+          message: `נמצאו ${rows.length} שורות ביטוח, ת.ז. ${idNumber}`,
         });
 
         // 2. Search person in Fireberry
@@ -61,16 +67,9 @@ export async function POST(request: NextRequest) {
           message: `נמצא ${typeHeb} בפיירברי`,
         });
 
-        // 3. Delete existing records
-        send({ step: "deleting", message: "מוחק רשומות הר ביטוח קיימות..." });
-        const deletedCount = await deleteInsuranceMountain(person);
-        send({
-          step: "deleting",
-          message: `נמחקו ${deletedCount} רשומות קיימות`,
-        });
-
-        // 4. Create new records
+        // 3. Create new records
         const errors: string[] = [];
+        const warnings: string[] = [];
         let createdCount = 0;
 
         for (let i = 0; i < rows.length; i++) {
@@ -80,6 +79,13 @@ export async function POST(request: NextRequest) {
             current: i + 1,
             total: rows.length,
           });
+
+          // Warn about unmapped secondary branches
+          if (rows[i].unmappedBranch) {
+            warnings.push(
+              `שורה ${i + 1}: ענף משני "${rows[i].secondaryBranch}" לא קיים במיפוי`
+            );
+          }
 
           try {
             await createInsuranceRecord(rows[i], person);
@@ -94,17 +100,17 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        // 5. Send webhook
+        // 4. Send webhook
         send({ step: "webhook", message: "שולח webhook..." });
         try {
           const webhookId =
             person.personType === "insured" ? person.insuredId : person.leadId;
           await sendWebhook(person.personType, webhookId);
         } catch {
-          errors.push("שגיאה בשליחת webhook");
+          // webhook is optional — don't block
         }
 
-        // 6. Done
+        // 5. Done
         send({
           step: "done",
           message: JSON.stringify({
@@ -112,9 +118,9 @@ export async function POST(request: NextRequest) {
             idNumber,
             personType: person.personType,
             totalRows: rows.length,
-            deletedCount,
             createdCount,
             errors,
+            warnings,
           }),
         });
       } catch (err) {

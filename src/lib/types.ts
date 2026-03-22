@@ -11,6 +11,7 @@ export interface InsuranceRow {
   policyNumber: string;
   planClassification: string;
   sector: number;
+  unmappedBranch: boolean;
 }
 
 export interface ParsedExcel {
@@ -37,7 +38,7 @@ export interface ProcessResult {
   idNumber: string;
   personType: "insured" | "lead" | "not_found";
   totalRows: number;
-  deletedCount: number;
   createdCount: number;
   errors: string[];
+  warnings: string[];
 }

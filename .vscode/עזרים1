@@ -1,0 +1,45 @@
+var tokenID = "5322e743-f68c-449f-a8b4-d05db3dd77a6";
+
+var rule = SpreadsheetApp.newDataValidation().requireCheckbox('Yes', 'No').build(); //תיבות סימון
+
+//מחיזר שגיאה כשחסר עמודה חובה בפרודוקציה
+function erorr(name) {
+    Logger.log("שגיאה: "+name);
+  }
+
+//החזרת אות עמודה
+function NUM_RETURN_LETRA(column){
+    var temp, letter = '';
+    while (column > 0)
+    {
+      temp = (column - 1) % 26;
+      letter = String.fromCharCode(temp + 65) + letter;
+      column = (column - temp - 1) / 26;
+    }
+    return letter;
+  }
+  
+//יצירת תפריט
+function addMenu()
+  {
+    var menu = SpreadsheetApp.getUi().createMenu('אפשרויות נוספות ⚙️');
+    menu.addItem('טען הר הביטוח לפאוורלינק', 'insurance_mountain'); 
+    menu.addItem('טען לידים לפאוורלינק', 'loading_leads'); 
+    menu.addItem('טען הר הביטוח ממערכת ישנה לפאוורלינק', 'insurance_mountain_Old'); 
+    menu.addItem('טען מבוטחים והצעות לפאוורלינק', 'loadOffers'); 
+    menu.addItem('טען קובץ פרודוקציה לפאוורלינק', 'runScript'); 
+    menu.addItem('איפוס טעינת לידים', 'reset_report');
+    menu.addToUi();
+  }
+
+  //איפוס טעינת לידים
+  function reset_report() {
+    scriptProperties.setProperty("start_line", 1);
+
+var triggers = ScriptApp.getProjectTriggers();
+for (var i = 0; i < triggers.length; i++) {
+if (triggers[i].getHandlerFunction() === "loading_leads") {
+  ScriptApp.deleteTrigger(triggers[i]);
+
+}}
+}

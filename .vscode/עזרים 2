@@ -1,0 +1,342 @@
+//מקור הגעה🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩
+  function source(source){
+
+    Logger.log("source: "+source);
+
+      var payload ={}
+
+    payload["query"] = "(name = "+source+")";
+    payload["fields"] = "*";
+    payload["objecttype"] = "1007";
+    payload["page_size"] = 500;
+
+  var options1 = {
+          "method": "post",
+          "headers" : {
+          "contentType": "application/json",
+          "tokenid": tokenID
+          },
+          "payload": JSON.stringify(payload)
+      };
+   
+
+    var response = UrlFetchApp.fetch('https://api.powerlink.co.il/api/query', options1)
+    var obj = JSON.parse(response);
+    var data = obj.data.Data;
+    Logger.log(data);
+
+    if(data.length > 0) { //נמצא מקור הגעה
+
+    var customobject1007id = data.map(item => item.customobject1007id);
+    return customobject1007id;
+
+  }}
+
+
+//מקדמת🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩
+  function mekademet(mekademet) {
+      if(mekademet == "חוי קרלינסקי"){ var results_mekademet = "030c9dd5-1c12-4f7e-aea1-0ef666189ec0";}
+      if(mekademet == "אור רומנו"){ var results_mekademet = "9714954f-b7bc-4587-86fa-11263525acad";}
+      if(mekademet == "מנחם מורשת"){ var results_mekademet = "0f922815-8613-4a66-9053-116d0b04a80b";}
+      if(mekademet == "מזי שמואלי"){ var results_mekademet = "e09a9617-c01a-4763-b800-1841e1f5bc34";}
+      if(mekademet == "חני שקורי"){ var results_mekademet = "a138b4b1-7692-4a0a-b370-27e1b045342a";}
+      if(mekademet == "ניצן משיח"){ var results_mekademet = "28c14b41-c9da-48b8-b401-33c9e4f8212e";}
+      if(mekademet == "דימה יאנובסקי"){ var results_mekademet = "0f4e901e-2b32-4b51-81f3-347bdb7e940b";}
+      if(mekademet == "אלמוג רז"){ var results_mekademet = "56a96529-d64b-415f-80c6-373819fd8112";}
+      if(mekademet == "יפה אלברט"){ var results_mekademet = "cd42158f-e386-4306-8e70-398c9383b93e";}
+      if(mekademet == "טלי אליאס"){ var results_mekademet = "10e10596-4d63-48fd-b9e5-3ffd62d84cdf";}
+      if(mekademet == "רחלי גבאי"){ var results_mekademet = "b81f3961-2630-4dc9-9941-571c441e2e71";}
+      if(mekademet == "מיקי נאור"){ var results_mekademet = "47db0e05-721f-40ed-9060-584aff9854a7";}
+      if(mekademet == "אסתי סיאני"){ var results_mekademet = "159bf6fb-7a57-4c11-8759-6a654b53d34f";}
+      if(mekademet == "יניב ויניצקי"){ var results_mekademet = "62ea7284-6559-4ac7-912b-71f1bbb90c55";}
+      if(mekademet == "לינוי שיש"){ var results_mekademet = "653be5bf-195e-4a9f-a04c-7a44ec885149";}
+      if(mekademet == "אוהד מדר"){ var results_mekademet = "46818ce0-6118-42ee-8ae2-9239a22ad5df";}
+      if(mekademet == "שיראל זארי"){ var results_mekademet = "cd5de3bf-2c1a-49c3-90c5-a6f2e2a288bb";}
+      if(mekademet == "און אביטן"){ var results_mekademet = "cbf44877-bfd7-435d-bb27-c33564fa8a8b";}
+      if(mekademet == "בניה זארי"){ var results_mekademet = "39e003a5-8765-4422-8319-72c19c402665";}
+      if(mekademet == "טל טסלר"){ var results_mekademet = "0c5dde1e-82c9-4ca3-829d-e1e0886ab661";}
+    return results_mekademet;    
+  }
+
+//סטטוס ליד🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩
+  function status(status) {
+    if(status == "ליד קר❄️"){var results_status = "1";}
+    if(status == "פולואפ ליד⏰"){var results_status = "2";}
+    if(status == "אין מענה 1️⃣"){var results_status ="3";}
+    if(status == 'אין מענה 2️⃣'){var results_status = "4";}
+    if(status == "אין מענה 3️⃣"){var results_status = "5";}
+    if(status == "לא רלוונטי❌"){var results_status = "6";}
+    if(status == "ליד חם🔥"){var results_status = "7";}
+    if(status == "פולואפ סוכן🔔"){var results_status = "9";}
+    if(status == "נסגרה עסקה🏆"){var results_status = "10";}
+    if(status == "ליד חוזר♻️"){var results_status = "11";}
+    if(status == "לקוח של הסוכנות"){var results_status = "12";}
+    if(status == "ליד לבדיקה🔍"){var results_status = "13";}
+    if(status == "ממתין להקצאה⌛"){var results_status = "14";}
+  return results_status;
+  }
+
+//סיבת נכשל🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩
+  function failure_reason(failure_reason) {
+    if(failure_reason == "לא מעוניין"){ var results_failure_reason = "1";}
+    if(failure_reason == "לא קביל לביטוח"){ var results_failure_reason = "2";}
+    if(failure_reason == "לא קיימים ביטוחים"){ var results_failure_reason = "3";}
+    if(failure_reason == "להסיר מהמאגר"){ var results_failure_reason = "4";}
+    if(failure_reason == "לקוח של הסוכנות"){ var results_failure_reason = "5";}
+    if(failure_reason == "קבוצתי"){ var results_failure_reason = "6";}
+    if(failure_reason == "אין מענה 3 פעמים"){ var results_failure_reason = "7";}
+    if(failure_reason == "יש לו סוכן"){ var results_failure_reason = "8";}
+  return results_failure_reason;
+  }
+
+//חוצץ בהר הביטוח🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩
+    function insurance_sector(insurance_sector) {
+          if(insurance_sector == "ביטוח רכב"){var results_insurance_sector = "2"};
+          if(insurance_sector == "ביטוח בריאות"){var results_insurance_sector = "1"};
+          if(insurance_sector == "ביטוח חיים"){var results_insurance_sector = "1"};
+          if(insurance_sector == "ביטוח חיים משכנתא"){var results_insurance_sector = "1"};
+          if(insurance_sector == "ביטוח סיעודי"){var results_insurance_sector = "3"};
+          if(insurance_sector == "כתב שירות"){var results_insurance_sector = "3"};
+          if(insurance_sector == "אבדן כושר עבודה"){var results_insurance_sector = "4"};
+          if(insurance_sector == "ביטוח דירה"){var results_insurance_sector = ""};
+          return results_insurance_sector;
+    }
+
+//קופת חולים🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩
+    function healthFund(healthFund) {
+
+      if(healthFund == "מכבי"){var results = "1"};
+      if(healthFund == "כללית"){var results = "2"};
+      if(healthFund == "מאוחדת"){var results = "3"};
+      if(healthFund == "לאומית"){var results = "4"};
+      return results;
+    }
+
+//קשר משפחתי במבוטח🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩
+    function familyRelation(relation){
+
+      if(relation == "בן/בת זוג"){var results = "2"};
+      if(relation == "ילד/ה"){var results = "3"};
+      if(relation == "אחר"){var results = "4"};
+      if(relation == "משני"){var results = "2"};
+      if(relation == "ילד"){var results = "3"};
+      if(relation == "ראשי"){var results = "1"};
+      return results;
+    }
+
+//חברת ביטוח🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩
+    function insuranceCompany(company){
+    
+        if(company.indexOf('מגדל')>-1){var results =	'1'};
+        if(company.indexOf('כלל')>-1){var results =	'2'};
+        if(company.indexOf('הראל')>-1){var results =	'3'};
+        if(company.indexOf('מנורה')>-1){var results =	'4'};
+        if(company.indexOf('איילון')>-1){var results =	'5'};
+        if(company.indexOf('הפניקס')>-1){var results =	'6'};
+        if(company.indexOf('הכשרה')>-1){var results =	'7'};
+        if(company.indexOf('אלטשולר שחם')>-1){var results =	'9'};
+        if(company.indexOf('מיטב דש')>-1){var results =	'10'};
+        if(company.indexOf('מור')>-1){var results =	'11'};
+        if(company.indexOf('ילין לפידות')>-1){var results =	'12'};
+        if(company.indexOf('אנליסט')>-1){var results =	'13'};
+        if(company.indexOf('אקסלנס')>-1){var results =	'14'};
+        if(company.indexOf('דיאגנוזה')>-1){var results =	'15'};
+        if(company.indexOf('מידהו')>-1){var results =	'16'};
+        return results;
+    }
+//מוצר🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩
+    function product(product){
+
+      if(product == 'בריאות'){var results =	'1'};
+      if(product == 'ביטוח בריאות'){var results =	'1'};
+      if(product == 'מחלות מורחב'	){var results =	'2'};
+      if(product == 'ביטוח מחלות קשות'){var results =	'2'};
+      if(product == 'סרטן'	){var results =	'3'};
+      if(product == 'ריסק'){var results =		'4'};
+      if(product == 'ביטוח חיים'){var results =		'4'};
+      if(product == 'ריסק משכנתא'	){var results =	'5'};
+      if(product == 'ביטוח חיים משכנתא'	){var results =	'5'};
+      if(product == 'ביטוח סיעודי'	){var results =	'27'};
+      if(product == 'קרן פנסיה'	){var results =	'7'};
+      if(product == 'קופת גמל'){var results =		'8'};
+      if(product == 'ביטוח מנהלים'	){var results =	'9'};
+      if(product == 'קרן השתלמות'	){var results =	'10'};
+      if(product == 'גמל להשקעה'	){var results =	'11'};
+      if(product == 'פוליסת חיסכון'){var results =		'12'};
+      if(product == 'פוליסה מאחדת'){var results =		'13'};
+      if(product == 'אבחון מהיר'){var results =		'14'};
+      if(product == 'אכע'){var results =		'15'};
+      if(product == 'משכנתא'	){var results =	'16'};
+      if(product == 'אמבולטורי'	){var results =	'17'};
+      if(product == 'בריאות מורחב'	){var results =	'18'};
+      if(product == 'התפתחות הילד'	){var results =	'19'};
+      if(product == 'טכנולוגיית TOP'	){var results =	'20'};
+      if(product == 'ייעוץ אונליין'){var results =		'21'};
+      if(product == 'כתבי שירות'	){var results =	'22'};
+      if(product == 'נכות מתאונה'	){var results =	'23'};
+      if(product == 'מחלות מורחב'	){var results =	'24'};
+      if(product == 'BEST CARE'	){var results =	'29'};
+      if(product == 'BSET CARE SMILE'	){var results =	'30'};
+      if(product == 'GOLD'	){var results =	'31'};
+      return results;
+
+    }
+//חיפוש סוכן לפרודוקציה 🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩
+    function agent_variables(agentNum) {
+
+    var spreadsheet = SpreadsheetApp.openById("1ECAWA2BewqDrzeaIjDajtAx3KXT-jHa_WDu5kiMBckA");
+    var sheet = spreadsheet.getSheetByName("אימות נתונים");
+    var data = sheet.getRange("H2:J1500").getValues();
+
+    for(i = 0; i < data.length; i++ ){
+    //  Logger.log("data[i][0] "+data[i][0])
+      if(data[i][0] == agentNum.toString()){
+        var agentText = data[i][1];
+        var agentID = data[i][2];
+      }else {
+        var agentText = agentNum;
+      }
+    }
+
+    var results = [agentText,agentID]
+    //Logger.log("agentNum : "+agentNum);
+    Logger.log("results agent : "+results);
+    return results;
+    }
+
+//ענף משני בהר הביטוח 🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩
+    function secondary_branchunction(secondary) {
+
+      if(secondary == 'ייעוץ ובדיקות'){ var secondary = '1'; var buffer = '1'; };
+      if(secondary == 'מוות מתאונה'){ var secondary = '33'; var buffer = '1'; };
+      if(secondary == 'מחלות קשות'){ var secondary = '2'; var buffer = '1'; };
+      if(secondary == 'השתלות'){ var secondary = '3'; var buffer = '1';};
+      if(secondary == 'ניתוחים אחידה'){ var secondary = '4'; var buffer = '1';};
+      if(secondary == 'תרופות - בסיס'){ var secondary = '5'; var buffer = '1';};
+      if(secondary == 'ניתוחים בחו"ל'){ var secondary = '6'; var buffer = '1';};
+      if(secondary == 'נספח טיפולים מחליפי ניתוח'){ var secondary = '38'; var buffer = '1';};
+      if(secondary == 'כתב שירות רופא און ליין'){ var secondary = '40'; var buffer = '1';};
+      if(secondary == 'תרופות - הרחבה'){ var secondary = '7'; var buffer = '1';};
+      if(secondary == 'תרופות - בסיס + הרחבה'){ var secondary = '30'; var buffer = '1';};
+      if(secondary == 'כתב שירות אבחון מהיר'){ var secondary = '8'; var buffer = '1';};
+      if(secondary == 'ביטוח חיים למקרה מוות'){ var secondary = '9'; var buffer = '1';};
+      if(secondary == 'אחר'){ var secondary = '10'; var buffer = '1';};
+      if(secondary == 'ניתוחים עם פיצוי על פנייה לציבורי/שב"ן'){ var secondary = '11'; var buffer = '1';};
+      if(secondary == 'ניתוחים משלים שב"ן'){ var secondary = '12'; var buffer = '1';};
+      if(secondary == 'ניתוחים אחידה - משלים שב"ן'){ var secondary = '12'; var buffer = '1';};
+      if(secondary == 'כתב שירות רפואה משלימה'){ var secondary = '13'; var buffer = '1';};
+      if(secondary == 'כתב שירות ניהול רפואי אישי'){ var secondary = '14'; var buffer = '1';};
+      if(secondary == 'כתב שירות ליווי אשפוז'){ var secondary = '15'; var buffer = '1';};
+      if(secondary == 'ניתוחים - אחר'){ var secondary = '16'; var buffer = '1';};
+      if(secondary == 'ניתוחים עם השתתפות עצמית'){ var secondary = '17'; var buffer = '1';};
+      if(secondary == 'חבילת כיסויים'){ var secondary = '18'; var buffer = '1';};
+      if(secondary == 'כתב שירות רפואת ספורט'){ var secondary = '19'; var buffer = '1';};
+      if(secondary == 'רכב חובה'){ var secondary = '20'; var buffer = '2';};
+      if(secondary == 'מקיף לבית עסק'){ var secondary = '37'; var buffer = '2';};
+      if(secondary == 'ביטוח מקיף'){ var secondary = '21'; var buffer = '2';};
+      if(secondary == 'ביטוח צד ג\''){ var secondary = '31'; var buffer = '2';};
+      if(secondary == 'ביטוח מבנה'){ var secondary = '22'; var buffer = '2';};
+      if(secondary == 'ביטוח מבנה ותכולה'){ var secondary = '23'; var buffer = '2';};
+      if(secondary == 'ביטוח תכולה'){ var secondary = '24'; var buffer = '2';};
+      if(secondary == 'סיעודי עד 3 חודשים'){ var secondary = '25'; var buffer = '3';};
+      if(secondary == 'סיעודי - המתנה של 37-60 חודשים'){ var secondary = '32'; var buffer = '3';};
+      if(secondary == 'סיעודי - המתנה של 4-36 חודשים'){ var secondary = '42'; var buffer = '3';};
+      if(secondary == 'נכויות'){ var secondary = '26'; var buffer = '3';};
+      if(secondary == 'תאונות אישיות'){ var secondary = '27'; var buffer = '3';};
+      if(secondary == 'אבדן כושר עבודה שחרור ופיצוי'){ var secondary = '28'; var buffer = '4';}
+      if(secondary == 'אבדן כושר עבודה'){ var secondary = '29'; var buffer = '4';}
+      if(secondary == 'אבדן כושר עבודה שחרור'){ var secondary = '41'; var buffer = '4';}
+      if(secondary == 'כתב שירות ליווי בעת מחלה'){ var secondary = '34'; var buffer = '1';}
+      if(secondary == 'ביטוח חיים חיסכון טהור'){ var secondary = '35'; var buffer = '4';}
+      if(secondary == 'ביטוח חיים משולב בחיסכון'){ var secondary = '39'; var buffer = '4';}
+      if(secondary == 'שיניים'){ var secondary = '36'; var buffer = '1';}
+      var results = [secondary, buffer];
+      Logger.log(results);
+      return results;
+    }
+
+//מוצרי חיסכון
+function savings_products (product){
+ if (product.indexOf('ביטוח מנהלים') > -1) var results = '9'; //ביטוח מנהלים
+ if (product.indexOf('גמל להשקעה') > -1) var results = '11'; //גמל להשקעה
+ if (product.indexOf('מנהלים חיסכון טהור') > -1) var results = '13'; //פוליסה מאחדת
+ if (product.indexOf('פוליסת חיסכון') > -1) var results = '12'; //פוליסת חסכון
+ if (product.indexOf('קופת גמל') > -1 && product.indexOf('גמל להשקעה') == -1) var results = '8'; //קופת גמל
+ if (product.indexOf('קרן השתלמות') > -1) var results = '10'; //קרן השתלמות
+ if (product.indexOf('קרן פנסיה') > -1) var results = '7'; //קרן פנסיה
+      Logger.log(results);
+      return results;
+}
+
+//עדכון סוכן פנסיוני בליד ובלקוח
+function agent_update(id,agent,objectNum,objectName,pension_agent_field,check){ 
+  //מזהה רשומה, מספר אובייקט, שם האובייקט, שדה סוכן פנסיוני, שדה סוכן, נדרש לבדיקה
+
+  if(check === 'yes'){
+    var options = {
+          "method": "GET",
+          "headers" : {
+          "contentType": "application/json",
+          "tokenid": tokenID
+          }
+      };
+
+    var response = UrlFetchApp.fetch('https://api.powerlink.co.il/api/record/'+objectName+'/'+id, options) 
+    var obj = JSON.parse(response);
+    var agentRecord = obj.data.Record.agent_field;
+
+    Logger.log(agentRecord+'\n'+agent);
+
+    if(agentRecord != agent){
+
+      var options = {
+        "method": "PUT",
+        "headers" : {
+        "contentType": "application/json",
+        "tokenid": tokenID
+        },
+        "payload": JSON.stringify({
+          pension_agent_field : agent
+        })
+      };
+      UrlFetchApp.fetch('https://api.powerlink.co.il/api/record/'+objectNum+'/'+id, options);
+
+  }
+  } else {
+    var options = {
+      "method": "PUT",
+      "headers" : {
+      "contentType": "application/json",
+      "tokenid": tokenID
+      },
+      "payload": JSON.stringify({
+        pension_agent_field : agent
+      })
+    };
+    UrlFetchApp.fetch('https://api.powerlink.co.il/api/record/'+objectNum+'/'+id, options);
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
