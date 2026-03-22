@@ -90,6 +90,15 @@ export default function Home() {
         {state !== "idle" && (
           <ProgressDisplay updates={updates} onReset={handleReset} />
         )}
+
+        <div className="mt-8 text-center">
+          <a
+            href="/admin"
+            className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            הגדרות מיפוי ענפים
+          </a>
+        </div>
       </div>
     </main>
   );

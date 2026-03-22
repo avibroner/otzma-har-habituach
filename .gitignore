@@ -37,6 +37,9 @@ yarn-error.log*
 # sample files
 /samples/
 
+# runtime data
+/data/
+
 # vercel
 .vercel
 

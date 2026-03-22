@@ -10,13 +10,14 @@ interface ProgressDisplayProps {
 const STEP_LABELS: Record<string, string> = {
   parsing: "פרסור קובץ",
   searching: "חיפוש בפיירברי",
+  loading_options: "טעינת ערכי שדות",
   creating: "יצירת רשומות",
   webhook: "סיום",
   done: "הושלם",
   error: "שגיאה",
 };
 
-const STEP_ORDER = ["parsing", "searching", "creating", "webhook", "done"];
+const STEP_ORDER = ["parsing", "searching", "loading_options", "creating", "webhook", "done"];
 
 export default function ProgressDisplay({ updates, onReset }: ProgressDisplayProps) {
   if (updates.length === 0) return null;

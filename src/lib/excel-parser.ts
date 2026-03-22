@@ -1,6 +1,5 @@
 import * as XLSX from "xlsx";
 import type { InsuranceRow, ParsedExcel } from "./types";
-import { getSecondaryBranch } from "./branch-mapping";
 
 const SECTOR_MAP: Record<string, number> = {
   "תחום - כללי": 1,
@@ -123,12 +122,9 @@ export function parseExcel(buffer: ArrayBuffer, filename: string): ParsedExcel {
     if (colJ) {
       const periodText = String(row[5] || "");
       const { start, end } = parsePeriod(periodText);
-      const secondaryBranch = String(row[2] || "").trim();
-      const branchMapping = getSecondaryBranch(secondaryBranch);
-
       rows.push({
         mainBranch: colB,
-        secondaryBranch,
+        secondaryBranch: String(row[2] || "").trim(),
         productType: String(row[3] || "").trim(),
         insuranceCompany: String(row[4] || "").trim(),
         periodText: periodText,
@@ -139,7 +135,6 @@ export function parseExcel(buffer: ArrayBuffer, filename: string): ParsedExcel {
         policyNumber: colJ,
         planClassification: String(row[10] || "").trim(),
         sector: currentSector,
-        unmappedBranch: !branchMapping && secondaryBranch.length > 0,
       });
     }
   }

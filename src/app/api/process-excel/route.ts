@@ -4,7 +4,9 @@ import {
   searchPerson,
   createInsuranceRecord,
   sendWebhook,
+  fetchFieldOptions,
 } from "@/lib/fireberry";
+import { readMapping } from "@/lib/mapping-store";
 import type { ProgressUpdate } from "@/lib/types";
 
 function delay(ms: number) {
@@ -67,7 +69,19 @@ export async function POST(request: NextRequest) {
           message: `נמצא ${typeHeb} בפיירברי`,
         });
 
-        // 3. Create new records
+        // 3. Load field options from Fireberry + buffer mapping
+        send({ step: "loading_options", message: "טוען ערכי שדות מפיירברי..." });
+        const [fieldOptions, bufferMapping] = await Promise.all([
+          fetchFieldOptions(),
+          readMapping(),
+        ]);
+        const branchCount = Object.keys(fieldOptions.branchMap).length;
+        send({
+          step: "loading_options",
+          message: `נטענו ${branchCount} ענפים משניים`,
+        });
+
+        // 4. Create new records
         const errors: string[] = [];
         const warnings: string[] = [];
         let createdCount = 0;
@@ -80,16 +94,12 @@ export async function POST(request: NextRequest) {
             total: rows.length,
           });
 
-          // Warn about unmapped secondary branches
-          if (rows[i].unmappedBranch) {
-            warnings.push(
-              `שורה ${i + 1}: ענף משני "${rows[i].secondaryBranch}" לא קיים במיפוי`
-            );
-          }
-
           try {
-            await createInsuranceRecord(rows[i], person);
+            const result = await createInsuranceRecord(rows[i], person, fieldOptions, bufferMapping);
             createdCount++;
+            if (result.warning) {
+              warnings.push(`שורה ${i + 1}: ${result.warning}`);
+            }
           } catch (err) {
             const msg = `שגיאה בשורה ${i + 1} (פוליסה ${rows[i].policyNumber}): ${err instanceof Error ? err.message : "unknown"}`;
             errors.push(msg);
@@ -100,17 +110,17 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        // 4. Send webhook
+        // 5. Send webhook
         send({ step: "webhook", message: "שולח webhook..." });
         try {
           const webhookId =
             person.personType === "insured" ? person.insuredId : person.leadId;
           await sendWebhook(person.personType, webhookId);
         } catch {
-          // webhook is optional — don't block
+          // webhook is optional
         }
 
-        // 5. Done
+        // 6. Done
         send({
           step: "done",
           message: JSON.stringify({

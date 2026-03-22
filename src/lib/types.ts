@@ -11,7 +11,6 @@ export interface InsuranceRow {
   policyNumber: string;
   planClassification: string;
   sector: number;
-  unmappedBranch: boolean;
 }
 
 export interface ParsedExcel {
@@ -27,7 +26,7 @@ export interface PersonIds {
 }
 
 export interface ProgressUpdate {
-  step: "parsing" | "searching" | "deleting" | "creating" | "webhook" | "done" | "error";
+  step: "parsing" | "searching" | "loading_options" | "creating" | "webhook" | "done" | "error";
   message: string;
   current?: number;
   total?: number;
@@ -42,3 +41,9 @@ export interface ProcessResult {
   errors: string[];
   warnings: string[];
 }
+
+export interface FieldOptions {
+  branchMap: Record<string, string>; // secondary branch name → Fireberry value ID
+  bufferMap: Record<string, string>; // buffer name → Fireberry value ID
+}
+

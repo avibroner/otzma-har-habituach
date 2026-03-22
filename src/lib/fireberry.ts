@@ -1,7 +1,8 @@
-import type { InsuranceRow, PersonIds } from "./types";
-import { getSecondaryBranch } from "./branch-mapping";
+import type { InsuranceRow, PersonIds, FieldOptions } from "./types";
+import { readMapping } from "./mapping-store";
 
-const API_BASE = "https://api.powerlink.co.il/api";
+const API_BASE = "https://api.fireberry.com";
+const API_BASE_OLD = "https://api.powerlink.co.il/api";
 
 function getToken(): string {
   const token = process.env.FIREBERRY_TOKEN;
@@ -9,9 +10,9 @@ function getToken(): string {
   return token;
 }
 
-async function apiRequest(path: string, options: RequestInit = {}): Promise<Response> {
+async function apiRequest(path: string, options: RequestInit = {}, base = API_BASE_OLD): Promise<Response> {
   const token = getToken();
-  return fetch(`${API_BASE}${path}`, {
+  return fetch(`${base}${path}`, {
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -33,6 +34,38 @@ async function query(objecttype: string, queryStr: string, pageSize = 500) {
   });
   const json = await res.json();
   return json?.data?.Data || [];
+}
+
+// Fetch field option values from Fireberry metadata API
+async function fetchFieldValues(fieldId: string): Promise<{ name: string; value: string }[]> {
+  const res = await apiRequest(
+    `/metadata/records/1005/fields/${fieldId}/values`,
+    { method: "GET" },
+    API_BASE
+  );
+  const json = await res.json();
+  return json?.data?.values || [];
+}
+
+// Fetch secondary branch + buffer options from Fireberry
+export async function fetchFieldOptions(): Promise<FieldOptions> {
+  const [branchValues, bufferValues] = await Promise.all([
+    fetchFieldValues("pcfsystemfield228"), // ענף משני
+    fetchFieldValues("pcfsystemfield229"), // חוצץ
+  ]);
+
+  // name → value lookup
+  const branchMap: Record<string, string> = {};
+  for (const item of branchValues) {
+    branchMap[item.name] = item.value;
+  }
+
+  const bufferMap: Record<string, string> = {};
+  for (const item of bufferValues) {
+    bufferMap[item.name] = item.value;
+  }
+
+  return { branchMap, bufferMap };
 }
 
 export async function searchPerson(idNumber: string): Promise<PersonIds | null> {
@@ -78,56 +111,47 @@ export async function searchPerson(idNumber: string): Promise<PersonIds | null> 
   return null;
 }
 
-export async function deleteInsuranceMountain(
-  person: PersonIds
-): Promise<number> {
-  let queryStr: string;
-
-  if (person.personType === "insured") {
-    queryStr = `(pcfsystemfield139 = ${person.insuredId})`;
-  } else {
-    queryStr = `(pcfsystemfield223 = ${person.leadId})`;
-  }
-
-  const records = await query("1005", queryStr);
-  const ids: string[] = records.map((r: Record<string, string>) => r.customobject1005id);
-
-  for (const id of ids) {
-    await apiRequest(`/record/1005/${id}`, { method: "DELETE" });
-  }
-
-  return ids.length;
-}
-
 export async function createInsuranceRecord(
   row: InsuranceRow,
-  person: PersonIds
-): Promise<void> {
-  const branch = getSecondaryBranch(row.secondaryBranch);
+  person: PersonIds,
+  fieldOptions: FieldOptions,
+  bufferMapping: Record<string, string>
+): Promise<{ warning?: string }> {
+  // Look up secondary branch ID from Fireberry options
+  const branchId = fieldOptions.branchMap[row.secondaryBranch] || "";
+  // Look up buffer from admin-managed mapping
+  const bufferId = bufferMapping[row.secondaryBranch] || "";
+
+  let warning: string | undefined;
+  if (row.secondaryBranch && !branchId) {
+    warning = `ענף משני "${row.secondaryBranch}" לא נמצא בפיירברי`;
+  } else if (row.secondaryBranch && !bufferId) {
+    warning = `ענף משני "${row.secondaryBranch}" לא ממופה לחוצץ`;
+  }
 
   const payload: Record<string, string | number> = {
     pcfsystemfield139: person.insuredId, // מבוטח
     pcfsystemfield164: person.clientId, // לקוח אב
     pcfsystemfield223: person.leadId, // ליד
     pcfsystemfield142: row.mainBranch, // ענף ראשי
-    pcfsystemfield229: branch?.bufferId || "", // חוצץ
-    pcfsystemfield228: branch?.branchId || "", // ענף משני
+    pcfsystemfield229: bufferId, // חוצץ
+    pcfsystemfield228: branchId, // ענף משני
     pcfsystemfield148: row.productType, // סוג מוצר
     pcfsystemfield146: row.insuranceCompany, // חברת ביטוח
     pcfsystemfield156: row.premium, // פרמיה
     pcfsystemfield154: row.premiumType, // סוג פרמיה
     pcfsystemfield160: row.policyNumber, // מספר פוליסה
     pcfsystemfield158: row.planClassification, // סיווג תוכנית
-    pcfsystemfield162: "", // הערות (לא קיים בקובץ Excel)
+    pcfsystemfield162: "", // הערות
     pcfsystemfield227: row.sector, // תחום ביטוח
     pcfsystemfield281: row.periodText, // תקופה טקסט
   };
 
   if (row.periodStart) {
-    payload.pcfsystemfield267 = row.periodStart; // תחילת תקופה
+    payload.pcfsystemfield267 = row.periodStart;
   }
   if (row.periodEnd) {
-    payload.pcfsystemfield269 = row.periodEnd; // סוף תקופה
+    payload.pcfsystemfield269 = row.periodEnd;
   }
 
   const res = await apiRequest("/record/1005", {
@@ -139,6 +163,8 @@ export async function createInsuranceRecord(
     const text = await res.text();
     throw new Error(`Failed to create record: ${res.status} ${text}`);
   }
+
+  return { warning };
 }
 
 export async function sendWebhook(
@@ -153,3 +179,4 @@ export async function sendWebhook(
 
   await fetch(url, { method: "POST" });
 }
+
