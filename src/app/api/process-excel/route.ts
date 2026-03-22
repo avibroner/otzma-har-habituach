@@ -122,7 +122,13 @@ export async function POST(request: NextRequest) {
             .filter(Boolean)
         )];
         if (unmappedBranches.length > 0) {
-          notifyUnmappedBranches(unmappedBranches, idNumber);
+          notifyUnmappedBranches(
+            unmappedBranches,
+            idNumber,
+            person.personType,
+            rows.length,
+            createdCount
+          );
         }
 
         // 6. Send webhook
