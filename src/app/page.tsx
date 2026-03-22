@@ -126,17 +126,7 @@ export default function Home() {
             >
               הגדרות
             </a>
-            <span>
-              פותח ע״י{" "}
-              <a
-                href="https://futureflow.co.il"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-white/40 hover:text-white/60 transition-colors"
-              >
-                FutureFlow
-              </a>
-            </span>
+            <span>עוצמה סוכנות לביטוח</span>
           </div>
         </div>
       </main>

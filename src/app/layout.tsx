@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Heebo } from "next/font/google";
+import { FutureFlowBadge } from "@/components/shared/futureflow-badge";
 import "./globals.css";
 
 const heebo = Heebo({
@@ -21,6 +22,7 @@ export default function RootLayout({
     <html lang="he" dir="rtl" className={`${heebo.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col font-[family-name:var(--font-heebo)]">
         {children}
+        <FutureFlowBadge systemName="הר הביטוח — עוצמה" theme="dark" />
       </body>
     </html>
   );
