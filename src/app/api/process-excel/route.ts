@@ -7,9 +7,9 @@ import {
   updatePremiumSummary,
   fetchFieldOptions,
 } from "@/lib/fireberry";
-import { readMapping } from "@/lib/mapping-store";
+import { readMapping, logUpload } from "@/lib/mapping-store";
 import { notifyUnmappedBranches, buildUnmappedRecord } from "@/lib/notify";
-import type { ProgressUpdate } from "@/lib/types";
+import type { ProgressUpdate, UploadLogEntry } from "@/lib/types";
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -28,6 +28,8 @@ export async function POST(request: NextRequest) {
         // 1. Parse Excel
         const formData = await request.formData();
         const file = formData.get("file") as File;
+        const uploaderName = (formData.get("uploaderName") as string) || "לא ידוע";
+        const uploaderEmail = (formData.get("uploaderEmail") as string) || "";
         if (!file) {
           send({ step: "error", message: "לא נבחר קובץ" });
           controller.close();
@@ -140,7 +142,33 @@ export async function POST(request: NextRequest) {
           errors.push(`שגיאה בעדכון סיכומי פרמיות: ${err instanceof Error ? err.message : "unknown"}`);
         }
 
-        // 7. Done
+        // 7. Log upload
+        const unmappedBranches = [...new Set(
+          warnings
+            .filter((w) => w.includes("לא ממופה"))
+            .map((w) => {
+              const match = w.match(/ענף משני "(.+?)"/);
+              return match ? match[1] : "";
+            })
+            .filter(Boolean)
+        )];
+
+        const logEntry: UploadLogEntry = {
+          uploaderName,
+          uploaderEmail,
+          fileName: file.name,
+          timestamp: new Date().toISOString(),
+          idNumber,
+          personType: person.personType,
+          totalRows: rows.length,
+          createdCount,
+          errorsCount: errors.length,
+          warningsCount: warnings.length,
+          unmappedBranches,
+        };
+        await logUpload(logEntry);
+
+        // 8. Done
         send({
           step: "done",
           message: JSON.stringify({

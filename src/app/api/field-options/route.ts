@@ -25,8 +25,14 @@ export async function GET() {
   }
 }
 
-// POST: save buffer mapping
+// POST: save buffer mapping (admin only)
 export async function POST(request: NextRequest) {
+  // Check admin cookie
+  const token = request.cookies.get("admin_session")?.value;
+  if (!token) {
+    return NextResponse.json({ error: "לא מאומת" }, { status: 401 });
+  }
+
   try {
     const { mapping } = await request.json();
     await writeMapping(mapping);

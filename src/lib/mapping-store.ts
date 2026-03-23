@@ -1,6 +1,8 @@
 import { createClient } from "redis";
+import type { UploadLogEntry } from "./types";
 
 const KV_KEY = "otzma:buffer-mapping";
+const LOG_KEY = "otzma:upload-log";
 
 async function getRedisClient() {
   const url = process.env.REDIS_URL;
@@ -36,4 +38,32 @@ export async function writeMapping(
 
   await client.set(KV_KEY, JSON.stringify(mapping));
   await client.disconnect();
+}
+
+export async function logUpload(entry: UploadLogEntry): Promise<void> {
+  try {
+    const client = await getRedisClient();
+    if (!client) return;
+
+    await client.lPush(LOG_KEY, JSON.stringify(entry));
+    // Keep only last 200 entries
+    await client.lTrim(LOG_KEY, 0, 199);
+    await client.disconnect();
+  } catch {
+    // Don't fail the upload if logging fails
+  }
+}
+
+export async function getUploadLogs(limit = 50): Promise<UploadLogEntry[]> {
+  try {
+    const client = await getRedisClient();
+    if (!client) return [];
+
+    const data = await client.lRange(LOG_KEY, 0, limit - 1);
+    await client.disconnect();
+
+    return data.map((d) => JSON.parse(d));
+  } catch {
+    return [];
+  }
 }

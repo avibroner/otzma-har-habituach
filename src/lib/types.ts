@@ -48,3 +48,17 @@ export interface FieldOptions {
   bufferMap: Record<string, string>; // buffer name → Fireberry value ID
 }
 
+export interface UploadLogEntry {
+  uploaderName: string;
+  uploaderEmail: string;
+  fileName: string;
+  timestamp: string;
+  idNumber: string;
+  personType: "insured" | "lead" | "not_found";
+  totalRows: number;
+  createdCount: number;
+  errorsCount: number;
+  warningsCount: number;
+  unmappedBranches: string[];
+}
+

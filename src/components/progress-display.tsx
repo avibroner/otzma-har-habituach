@@ -171,6 +171,13 @@ export default function ProgressDisplay({ updates, onReset }: ProgressDisplayPro
                 <p key={i} className="text-amber-200/70 text-xs break-words">{w}</p>
               ))}
             </div>
+            <a
+              href="/admin?highlight=unmapped"
+              target="_top"
+              className="mt-3 block w-full py-2.5 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/30 text-amber-200 rounded-lg text-center text-sm font-medium transition-colors"
+            >
+              עבור להגדרות למיפוי הענפים
+            </a>
           </div>
         )}
 
